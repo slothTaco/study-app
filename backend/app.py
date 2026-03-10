@@ -21,5 +21,17 @@ def add_flashcard():
     data = request.get_json()  # Read JSON data sent by frontend
     flashcards.append({"question": data['question'], "answer": data['answer']})
     return jsonify({"message": "Flashcard added!", "flashcards": flashcards})
+
+@app.route('/flashcards/<int:index>', methods=['put'])
+def update_flashcard(index):
+    data = request.get_json()
+    if index < len(flashcards):
+        flashcards[index] = {
+                   "question": data['question'],
+                   "answer": data['answer']
+        }
+        return jsonify({"message": "Flashcard updated", "flashcards": flashcards})
+    return jsonify({"error": "Flashcard not found"}) 
+
 if __name__ == '__main__':
     app.run(debug=True)
