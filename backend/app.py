@@ -31,7 +31,20 @@ def update_flashcard(index):
                    "answer": data['answer']
         }
         return jsonify({"message": "Flashcard updated", "flashcards": flashcards})
-    return jsonify({"error": "Flashcard not found"}) 
+    return jsonify({"error": "Flashcard not found"})
+
+@app.route('/flshcards/<int:index>', methods=['DELETE'])
+def delete_flashcard(index):
+
+    if index <len(flashcards):
+
+        deleted = flashcards.pop(index)
+
+        return jsonify({
+            "message": "FLashcard deleted",
+            "deleted": deleted
+        }) 
+    return jsonify({"error": "Flashcard not found"})
 
 if __name__ == '__main__':
     app.run(debug=True)
