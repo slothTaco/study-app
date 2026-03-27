@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Study App</title>
+</head>
+<body>
+
+<h1>My Flashcards</h1>
+
+<p>Welcome to the study app!</p>
+
+<h2>Add Flashcard</h2>
+<input id="question" placeholder="Enter question">
+<input id="answer" placeholder="Enter answer">
+<button onclick="addFlashcard()">Add Flashcard</button>
+
+<br><br>
+<button onclick="loadFlashcards()">Load Flashcards</button>
+
+<ul id="flashcardList"></ul>
+
+<script>
+	// Load and display all flashcards
+	async function loadFlashcards() {
+		const response = await fetch('/flashcards');
+		const data = await response.json();
+
+		const list = document.getElementById("flashcardList");
+		list.innerHTML = "";
+
+	data.flashcards.forEach((card, index) => {
+		const item = document.createElement("li");
+
+		// Display question, answer, and a delete button
+		item.innerHTML = `
+			<strong>Q:</strong> ${card.question} <br>
+			<strong>A:</strong> ${card.answer} <br>
+			<button onclick="deleteFlashcard(${index})">Delete</button>
+			`;
+
+			list.appendChild(item);
+		});
+	}
+
+	// Add a new flashcard
+	async function addFlashcard() {
+		const question = document.getElementById("question").value;
+		const answer = document.getElementById("answer").value;
+
+		if (!question || !answer) {
+			alert("Please enter both question and answer!");
+			return;
+		}
+
+		await fetch('/flashcards', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ question, answer })
+		});
+
+		// Clear inputs
+		document.getElementById("question").value = "";
+		document.getElementById("answer").value = "";
+
+		loadFlashcards();
+	}
+
+	// Delete a flashcard
+	async function deleteFlashcard(index) {
+		await fetch(`/flashcards/${index}`, {
+			method: 'DELETE'
+		});
+
+		loadFlashcards();
+	}
+</script>
+
+</body>
+</html>
