@@ -28,7 +28,7 @@
 		const list = document.getElementById("flashcardList");
 		list.innerHTML = "";
 
-	data.flashcards.forEach((card, index) => {
+	data.forEach((card, index) => {
 		const item = document.createElement("li");
 
 		// Display question, answer, and a delete button
