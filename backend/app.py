@@ -1,12 +1,22 @@
-﻿from flask import Flask, jsonify, request, render_template
+﻿import os
+import json
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
 
-# Sample flashcards
-flashcards = [
-    {"question": "What is Python?", "answer": "A programming language"},
-    {"question": "What does Git do?", "answer": "Version control"}
-]
+DATA_FILE = os.path.join(os.path.dirname(__file__), 'flashcards.json')
+
+def load_flashcards():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f:
+            return json.load(f)
+    return[]
+
+def save_flashcards(flashcards):
+    with open(DATA_FILE, 'w') as f:
+        json.dump(flashcards, f, indent=2)
+
+flashcards = load_flashcards()
 
 # Home route
 @app.route('/')
@@ -22,27 +32,23 @@ def get_flashcards():
 @app.route('/flashcards', methods=['POST'])
 def add_flashcard():
     data = request.get_json()
-    flashcards.append({"question": data['question'], "answer": data['answer']})
-    return jsonify({"message": "Flashcard added!", "flashcards": flashcards})
+    
+    new_card = {
+        "question": data["question"],
+        "answer": data["answer"]
+    }
 
-# Update a flashcard
-@app.route('/flashcards/<int:index>', methods=['PUT'])
-def update_flashcard(index):
-    data = request.get_json()
-    if 0 <= index < len(flashcards):
-        flashcards[index] = {
-            "question": data['question'],
-            "answer": data['answer']
-        }
-        return jsonify({"message": "Flashcard updated", "flashcards": flashcards})
-    return jsonify({"error": "Flashcard not found"}), 404
+    flashcards.append(new_card)
+    save_flashcards(flashcards)
+
+    return jsonify({"message": "Flashcard added"})
 
 # Delete a flashcard
 @app.route('/flashcards/<int:index>', methods=['DELETE'])
 def delete_flashcard(index):
     if 0 <= index < len(flashcards):
-        removed = flashcards.pop(index)
-        return jsonify({"message": "Flashcard deleted!", "removed": removed})
+        flashcards.pop(index)
+        return jsonify({"message": "Flashcard deleted!"})
     return jsonify({"error": "Invalid index"}), 400
 
 if __name__ == '__main__':

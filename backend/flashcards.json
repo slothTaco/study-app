@@ -1,0 +1,6 @@
+[
+  {
+    "question": "What is FLask used for?",
+    "answer": "Flask is the Python web framework that provides the backend server, handles routes, and serves data to the frontend."
+  }
+]

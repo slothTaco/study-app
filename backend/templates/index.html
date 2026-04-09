@@ -13,10 +13,10 @@
 	<h2>Add Flashcard</h2>
 	<input id="question" placeholder="Enter question">
 	<input id="answer" placeholder="Enter answer">
-	<button onclick="addFlashcard()">Add Flashcard</button>
+	<button class ="primary-btn" onclick="addFlashcard()">Add Flashcard</button>
 
 	<br><br>
-	<button onclick="loadFlashcards()">Load Flashcards</button>
+	
 
 	<ul id="flashcardList"></ul>
 
@@ -34,11 +34,15 @@
 
 		// Display question, answer, and a delete button
 		item.innerHTML = `
-			<div class="card-content">
-				<strong>Q:</strong> ${card.question} <br>
-				<strong>A:</strong> ${card.answer}
+			<div class="card-content" onclick="toggleAnswer(this)">
+				<div class ="question">
+					<strong>Q:</strong> ${card.question}
+				</div>
+				<div class ="answer hidden">
+					<strong>A:</strong> ${card.answer}
+				</div>
 			</div>
-			<button onclick="deleteFlashcard(${index})">Delete</button>
+			<button class="delete-btn" onclick="deleteFlashcard(${index})">Delete</button>
 			`;
 
 			list.appendChild(item);
@@ -78,6 +82,20 @@
 
 		loadFlashcards();
 	}
+
+	function toggleAnswer(card) {
+		const answer = card.querySelector(".answer");
+		answer.classList.toggle("hidden");
+	}
+
+// Runs once when the page finishes loading
+function initializeApp() {
+	loadFlashcards();
+}
+
+
+// Entry point for the app
+window.onload = initializeApp;
 </script>
 
 </body>
