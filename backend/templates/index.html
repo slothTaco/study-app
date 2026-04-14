@@ -1,102 +1,218 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Study App</title>
-	<link rel="stylesheet" href="{{url_for('static', filename='styles.css') }}">
+    <title>Study App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+
 <div class="container">
-	<h1>My Flashcards</h1>
+    <h1>My Flashcards</h1>
+    <p>Welcome to the study app!</p>
 
-	<p>Welcome to the study app!</p>
+    <!-- ========================= -->
+    <!-- ADD FLASHCARD SECTION -->
+    <!-- ========================= -->
+    <h2>Add Flashcard</h2>
 
-	<h2>Add Flashcard</h2>
-	<input id="question" placeholder="Enter question">
-	<input id="answer" placeholder="Enter answer">
-	<button class ="primary-btn" onclick="addFlashcard()">Add Flashcard</button>
+    <input id="question" placeholder="Enter question">
+    <input id="answer" placeholder="Enter answer">
+    <input id="topic" placeholder="Enter topic (optional)">
 
-	<br><br>
-	
+    <button class="primary-btn" onclick="addFlashcard()">
+        Add Flashcard
+    </button>
 
-	<ul id="flashcardList"></ul>
+    <br><br>
+
+    <!-- ========================= -->
+    <!-- TOPIC FILTER -->
+    <!-- ========================= -->
+    <label for="topicFilter">Topic</label>
+    <select id="topicFilter" onchange="loadFlashcards()">
+        <option value="All">All Topics</option>
+    </select>
+
+    <br><br>
+
+    <!-- ========================= -->
+    <!-- STUDY MODE BUTTONS -->
+    <!-- ========================= -->
+    <button class="primary-btn" onclick="loadFlashcards()">
+        Show All Flashcards
+    </button>
+
+    <button class="primary-btn" onclick="loadRandomFlashcard()">
+        Review Random Flashcard
+    </button>
+
+    <!-- ========================= -->
+    <!-- FLASHCARD DISPLAY -->
+    <!-- ========================= -->
+    <ul id="flashcardList"></ul>
+</div>
 
 <script>
-	// Load and display all flashcards
-	async function loadFlashcards() {
-		const response = await fetch('/flashcards');
-		const data = await response.json();
+/* ========================= */
+/* LOAD ALL FLASHCARDS       */
+/* ========================= */
+async function loadFlashcards() {
+    const response = await fetch('/flashcards');
+    const data = await response.json();
 
-		const list = document.getElementById("flashcardList");
-		list.innerHTML = "";
+    const list = document.getElementById("flashcardList");
+    const topicSelect = document.getElementById("topicFilter");
 
-	data.forEach((card, index) => {
-		const item = document.createElement("li");
+    const selectedTopic = topicSelect.value;
+    list.innerHTML = "";
 
-		// Display question, answer, and a delete button
-		item.innerHTML = `
-			<div class="card-content" onclick="toggleAnswer(this)">
-				<div class ="question">
-					<strong>Q:</strong> ${card.question}
-				</div>
-				<div class ="answer hidden">
-					<strong>A:</strong> ${card.answer}
-				</div>
-			</div>
-			<button class="delete-btn" onclick="deleteFlashcard(${index})">Delete</button>
-			`;
+    // ✅ Build topic list ONLY from actual data
+    const topics = [...new Set(
+        data
+            .map(card => card.topic)
+            .filter(topic => topic && topic.trim() !== "")
+    )];
 
-			list.appendChild(item);
-		});
-	}
+    // ✅ Rebuild dropdown
+    topicSelect.innerHTML = `<option value="All">All Topics</option>`;
+    topics.forEach(topic => {
+        const option = document.createElement("option");
+        option.value = topic;
+        option.textContent = topic;
+        topicSelect.appendChild(option);
+    });
 
-	// Add a new flashcard
-	async function addFlashcard() {
-		const question = document.getElementById("question").value;
-		const answer = document.getElementById("answer").value;
+    // ✅ Reset invalid selection
+    if (selectedTopic !== "All" && !topics.includes(selectedTopic)) {
+        topicSelect.value = "All";
+    } else {
+        topicSelect.value = selectedTopic;
+    }
 
-		if (!question || !answer) {
-			alert("Please enter both question and answer!");
-			return;
-		}
+    const cardsToShow = topicSelect.value === "All"
+        ? data
+        : data.filter(card => card.topic === topicSelect.value);
 
-		await fetch('/flashcards', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ question, answer })
-		});
+    cardsToShow.forEach((card, index) => {
+        const item = document.createElement("li");
 
-		// Clear inputs
-		document.getElementById("question").value = "";
-		document.getElementById("answer").value = "";
+        item.innerHTML = `
+            <div class="card-content" onclick="toggleAnswer(this)">
+                <div class="question">
+                    <strong>Q:</strong> ${card.question}
+                </div>
+                <div class="answer hidden">
+                    <strong>A:</strong> ${card.answer}
+                </div>
+                <div class="topic">
+                    <em>Topic: ${card.topic}</em>
+                </div>
+            </div>
 
-		loadFlashcards();
-	}
+            <button class="delete-btn" onclick="deleteFlashcard(${index})">
+                Delete
+            </button>
+        `;
 
-	// Delete a flashcard
-	async function deleteFlashcard(index) {
-		await fetch(`/flashcards/${index}`, {
-			method: 'DELETE'
-		});
-
-		loadFlashcards();
-	}
-
-	function toggleAnswer(card) {
-		const answer = card.querySelector(".answer");
-		answer.classList.toggle("hidden");
-	}
-
-// Runs once when the page finishes loading
-function initializeApp() {
-	loadFlashcards();
+        list.appendChild(item);
+    });
 }
 
+/* ========================= */
+/* RANDOM REVIEW MODE        */
+/* ========================= */
+async function loadRandomFlashcard() {
+    const response = await fetch('/flashcards');
+    const data = await response.json();
 
-// Entry point for the app
-window.onload = initializeApp;
+    if (!data.length) {
+        alert("No flashcards available.");
+        return;
+    }
+
+    const topicSelect = document.getElementById("topicFilter");
+    const selectedTopic = topicSelect ? topicSelect.value : "All";
+
+    let filteredCards = selectedTopic === "All"
+        ? data
+        : data.filter(card => card.topic === selectedTopic);
+
+    // ✅ Fallback so random review never breaks
+    if (filteredCards.length === 0) {
+        filteredCards = data;
+    }
+
+    const randomCard =
+        filteredCards[Math.floor(Math.random() * filteredCards.length)];
+
+    const list = document.getElementById("flashcardList");
+    list.innerHTML = "";
+
+    const item = document.createElement("li");
+    item.innerHTML = `
+        <div class="card-content" onclick="toggleAnswer(this)">
+            <div class="question">
+                <strong>Q:</strong> ${randomCard.question}
+            </div>
+            <div class="answer hidden">
+                <strong>A:</strong> ${randomCard.answer}
+            </div>
+            <div class="topic">
+                <em>Topic: ${randomCard.topic}</em>
+            </div>
+        </div>
+    `;
+
+    list.appendChild(item);
+}
+
+/* ========================= */
+/* ADD FLASHCARD             */
+/* ========================= */
+async function addFlashcard() {
+    const question = document.getElementById("question").value;
+    const answer = document.getElementById("answer").value;
+    const topic = document.getElementById("topic").value || "General";
+
+    if (!question || !answer) {
+        alert("Please enter both question and answer!");
+        return;
+    }
+
+    await fetch('/flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, answer, topic })
+    });
+
+    document.getElementById("question").value = "";
+    document.getElementById("answer").value = "";
+    document.getElementById("topic").value = "";
+
+    loadFlashcards();
+}
+
+/* ========================= */
+/* DELETE FLASHCARD          */
+/* ========================= */
+async function deleteFlashcard(index) {
+    await fetch(`/flashcards/${index}`, { method: 'DELETE' });
+    loadFlashcards();
+}
+
+/* ========================= */
+/* TOGGLE ANSWER             */
+/* ========================= */
+function toggleAnswer(card) {
+    card.querySelector(".answer").classList.toggle("hidden");
+}
+
+/* ========================= */
+/* INITIAL LOAD              */
+/* ========================= */
+window.onload = loadFlashcards;
 </script>
 
 </body>
 </html>
+

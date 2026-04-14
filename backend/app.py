@@ -1,5 +1,6 @@
 ﻿import os
 import json
+import random
 from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
@@ -35,7 +36,8 @@ def add_flashcard():
     
     new_card = {
         "question": data["question"],
-        "answer": data["answer"]
+        "answer": data["answer"],
+        "topic": data.get("topic", "General")
     }
 
     flashcards.append(new_card)
@@ -50,6 +52,15 @@ def delete_flashcard(index):
         flashcards.pop(index)
         return jsonify({"message": "Flashcard deleted!"})
     return jsonify({"error": "Invalid index"}), 400
+
+# Returns one random flashcard
+@app.route('/flashcards/random', methods=['GET'])
+def get_random_flashcards():
+    if not flashcards:
+        return jsonify({"error": "No flashcards available"}), 404
+    
+    card = random.choice(flashcards)
+    return jsonify(card)
 
 if __name__ == '__main__':
     app.run(debug=True)
