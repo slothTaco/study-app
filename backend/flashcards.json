@@ -1,6 +1,17 @@
 [
   {
-    "question": "What is FLask used for?",
-    "answer": "Flask is the Python web framework that provides the backend server, handles routes, and serves data to the frontend."
+    "question": "What is Flask used for?",
+    "answer": "Flask is a lightweight Python web framework used to build web applications and APIs",
+    "topic": "Flask"
+  },
+  {
+    "question": "What is a Rest API?",
+    "answer": "A REST API allows clents to communicate with a server using standard HTTP methods like GET and POST",
+    "topic": "Web Development"
+  },
+  {
+    "question": "What is a virtual enviroment in Python?",
+    "answer": "A vitual enviroment isolates dependencies so multiple Python projects don't interefere with each other",
+    "topic": "Python"
   }
 ]

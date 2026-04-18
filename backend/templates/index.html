@@ -66,14 +66,14 @@ async function loadFlashcards() {
     const selectedTopic = topicSelect.value;
     list.innerHTML = "";
 
-    // ✅ Build topic list ONLY from actual data
+    // Build topic list ONLY from actual data
     const topics = [...new Set(
         data
             .map(card => card.topic)
             .filter(topic => topic && topic.trim() !== "")
     )];
 
-    // ✅ Rebuild dropdown
+    // Rebuild dropdown
     topicSelect.innerHTML = `<option value="All">All Topics</option>`;
     topics.forEach(topic => {
         const option = document.createElement("option");
@@ -82,7 +82,7 @@ async function loadFlashcards() {
         topicSelect.appendChild(option);
     });
 
-    // ✅ Reset invalid selection
+    // Reset invalid selection
     if (selectedTopic !== "All" && !topics.includes(selectedTopic)) {
         topicSelect.value = "All";
     } else {
@@ -137,7 +137,7 @@ async function loadRandomFlashcard() {
         ? data
         : data.filter(card => card.topic === selectedTopic);
 
-    // ✅ Fallback so random review never breaks
+    // Fallback so random review never breaks
     if (filteredCards.length === 0) {
         filteredCards = data;
     }
