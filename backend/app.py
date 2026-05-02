@@ -1,9 +1,13 @@
-﻿import os
+import os
 import json
 import random
 from flask import Flask, jsonify, request, render_template
+from db import get_all_flashcards, insert_flashcard, delete_flashcard_by_index
+from db import init_db
 
 app = Flask(__name__)
+
+init_db()
 
 DATA_FILE = os.path.join(os.path.dirname(__file__), 'flashcards.json')
 
@@ -17,7 +21,7 @@ def save_flashcards(flashcards):
     with open(DATA_FILE, 'w') as f:
         json.dump(flashcards, f, indent=2)
 
-flashcards = load_flashcards()
+flashcards = get_all_flashcards()
 
 # Home route
 @app.route('/')
@@ -65,3 +69,5 @@ def get_random_flashcards():
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port = port)
+
+
